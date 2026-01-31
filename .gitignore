@@ -1,0 +1,70 @@
+# ============================================
+# 后端相关（C++）
+# ============================================
+
+# 编译输出
+build/
+*.o
+*.a
+*.so
+*.exe
+device_server
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# ============================================
+# 前端相关（Node.js/React）
+# ============================================
+
+# Node.js
+front-end/node_modules/
+front-end/dist/
+front-end/dist-ssr/
+front-end/.vite/
+
+# 前端日志
+front-end/*.log
+front-end/npm-debug.log*
+front-end/yarn-debug.log*
+front-end/yarn-error.log*
+front-end/pnpm-debug.log*
+front-end/lerna-debug.log*
+
+# ============================================
+# 配置文件（可能包含敏感信息）
+# ============================================
+
+# 不要提交包含真实密码的配置文件
+config.ini
+config.local.ini
+config.prod.ini
+*.secret.ini
+
+# ============================================
+# 通用忽略
+# ============================================
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 日志文件
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.bak
+*.orig
