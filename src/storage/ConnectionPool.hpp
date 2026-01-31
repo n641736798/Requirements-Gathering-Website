@@ -13,7 +13,7 @@ struct MySQLConfig {
     int port = 3306;
     std::string user = "root";
     std::string password = "";
-    std::string database = "device_data";
+    std::string database = "requirement_db";
     std::string charset = "utf8mb4";
     int connectTimeout = 5;
     int readTimeout = 30;

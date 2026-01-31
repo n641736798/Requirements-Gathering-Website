@@ -1,8 +1,36 @@
 -- ============================================
--- 设备数据服务 MySQL 数据库初始化脚本
+-- 需求收集网站 MySQL 数据库初始化脚本
 -- ============================================
 
 -- 创建数据库（如果不存在）
+CREATE DATABASE IF NOT EXISTS requirement_db 
+    DEFAULT CHARACTER SET utf8mb4 
+    DEFAULT COLLATE utf8mb4_unicode_ci;
+
+USE requirement_db;
+
+-- ============================================
+-- 需求表
+-- 存储用户上报的需求信息
+-- ============================================
+CREATE TABLE IF NOT EXISTS requirements (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '自增主键',
+    title VARCHAR(256) NOT NULL COMMENT '题目',
+    content TEXT NOT NULL COMMENT '内容',
+    willing_to_pay TINYINT DEFAULT NULL COMMENT '0=不愿意, 1=愿意, NULL=空',
+    contact VARCHAR(512) DEFAULT NULL COMMENT '联系方式（邮箱、电话等）',
+    notes TEXT DEFAULT NULL COMMENT '备注',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_created_at (created_at DESC),
+    INDEX idx_willing_to_pay (willing_to_pay)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='需求表';
+
+-- ============================================
+-- 以下为原设备数据服务表（可选保留）
+-- ============================================
+
 CREATE DATABASE IF NOT EXISTS device_data 
     DEFAULT CHARACTER SET utf8mb4 
     DEFAULT COLLATE utf8mb4_unicode_ci;

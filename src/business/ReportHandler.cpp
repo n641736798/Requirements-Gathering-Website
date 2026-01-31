@@ -2,107 +2,115 @@
 #include "utils/Logger.hpp"
 #include <sstream>
 
-ReportHandler::ReportHandler(StoreInterface& store, DeviceManager& deviceMgr)
-    : store_(store), deviceMgr_(deviceMgr) {
+ReportHandler::ReportHandler(StoreInterface& store) : store_(store) {
 }
 
-bool ReportHandler::parseReportRequest(const JsonValue& json, ReportRequest& req) {
-    if (!json.isObject()) {
-        return false;
-    }
-    
-    if (!json.has("device_id") || !json.get("device_id").isString()) {
-        return false;
-    }
-    req.deviceId = json.get("device_id").asString();
-    if (req.deviceId.empty()) {
-        return false;
-    }
-    
-    if (!json.has("timestamp") || !json.get("timestamp").isNumber()) {
-        return false;
-    }
-    req.timestamp = json.get("timestamp").asInt();
-    
-    if (!json.has("metrics") || !json.get("metrics").isObject()) {
-        return false;
-    }
-    
-    const auto& metricsObj = json.get("metrics").asObject();
-    for (const auto& [key, value] : metricsObj) {
-        if (value.isNumber()) {
-            req.metrics[key] = value.asDouble();
+bool ReportHandler::parseRequirementReportRequest(const JsonValue& json, RequirementReportRequest& req) {
+    if (!json.isObject()) return false;
+
+    if (!json.has("title") || !json.get("title").isString()) return false;
+    req.title = json.get("title").asString();
+    if (req.title.empty()) return false;
+
+    if (!json.has("content") || !json.get("content").isString()) return false;
+    req.content = json.get("content").asString();
+    if (req.content.empty()) return false;
+
+    if (json.has("willing_to_pay")) {
+        const auto& v = json.get("willing_to_pay");
+        if (v.isNull()) {
+            req.willing_to_pay = -1;
+        } else if (v.isNumber()) {
+            int val = static_cast<int>(v.asInt());
+            if (val == 0) req.willing_to_pay = 0;
+            else if (val == 1) req.willing_to_pay = 1;
+            else req.willing_to_pay = -1;
+        } else {
+            req.willing_to_pay = -1;
         }
+    } else {
+        req.willing_to_pay = -1;
     }
-    
-    return !req.metrics.empty();
+
+    if (json.has("contact") && json.get("contact").isString()) {
+        req.contact = json.get("contact").asString();
+    }
+    if (json.has("notes") && json.get("notes").isString()) {
+        req.notes = json.get("notes").asString();
+    }
+    return true;
 }
 
-bool ReportHandler::parseQueryRequest(const std::string& queryStr, QueryRequest& req) {
-    // 简单解析：device_id=xxx&limit=100
+bool ReportHandler::parseRequirementQueryRequest(const std::string& queryStr, RequirementQueryRequest& req) {
     std::istringstream iss(queryStr);
     std::string token;
-    bool hasDeviceId = false;
-    req.limit = 100; // 默认值
-    
+    req.page = 1;
+    req.limit = 100;
+    req.willing_to_pay = -1;
+
     while (std::getline(iss, token, '&')) {
         size_t pos = token.find('=');
         if (pos == std::string::npos) continue;
-        
+
         std::string key = token.substr(0, pos);
         std::string value = token.substr(pos + 1);
-        
-        if (key == "device_id") {
-            req.deviceId = value;
-            hasDeviceId = true;
+
+        if (key == "page") {
+            try { req.page = std::max(1, std::stoi(value)); } catch (...) {}
         } else if (key == "limit") {
+            try { req.limit = std::max(1, std::min(100, std::stoi(value))); } catch (...) {}
+        } else if (key == "willing_to_pay") {
             try {
-                req.limit = std::stoull(value);
-                if (req.limit > 1000) req.limit = 1000; // 上限
-            } catch (...) {
-                req.limit = 100;
-            }
+                int v = std::stoi(value);
+                if (v == 0 || v == 1) req.willing_to_pay = v;
+                else if (v == 2) req.willing_to_pay = 2;  // 2 表示筛选"空/未填"(NULL)
+            } catch (...) {}
+        } else if (key == "keyword") {
+            req.keyword = value;
         }
     }
-    
-    return hasDeviceId && !req.deviceId.empty();
+    return true;
 }
 
-JsonValue ReportHandler::handleReport(const ReportRequest& req) {
-    // 自动注册设备
-    deviceMgr_.ensureRegistered(req.deviceId);
-    
-    // 构造数据点
-    DataPoint point;
-    point.timestamp = req.timestamp;
-    point.metrics = req.metrics;
-    
-    // 写入内存存储
-    store_.append(req.deviceId, point);
-    
-    // 返回成功响应
+JsonValue ReportHandler::handleRequirementReport(const RequirementReportRequest& req) {
+    Requirement r;
+    r.title = req.title;
+    r.content = req.content;
+    r.willing_to_pay = req.willing_to_pay;
+    r.contact = req.contact;
+    r.notes = req.notes;
+
+    store_.appendRequirement(r);
+
     std::unordered_map<std::string, JsonValue> resp;
     resp["code"] = JsonValue(0LL);
     resp["message"] = JsonValue(std::string("ok"));
     return JsonValue(resp);
 }
 
-JsonValue ReportHandler::handleQuery(const QueryRequest& req) {
-    auto data = store_.queryLatest(req.deviceId, req.limit);
-    
+JsonValue ReportHandler::handleRequirementQuery(const RequirementQueryRequest& req) {
+    auto result = store_.queryRequirements(req.page, req.limit, req.willing_to_pay, req.keyword);
+
     std::unordered_map<std::string, JsonValue> resp;
-    resp["device_id"] = JsonValue(req.deviceId);
-    
+    resp["code"] = JsonValue(0LL);
+
     std::vector<JsonValue> dataArray;
-    for (const auto& point : data) {
+    for (const auto& r : result.data) {
         std::unordered_map<std::string, JsonValue> item;
-        item["timestamp"] = JsonValue(point.timestamp);
-        for (const auto& [key, value] : point.metrics) {
-            item[key] = JsonValue(value);
-        }
+        item["id"] = JsonValue(r.id);
+        item["title"] = JsonValue(r.title);
+        item["content"] = JsonValue(r.content);
+        item["willing_to_pay"] = r.willing_to_pay < 0 ? JsonValue() : JsonValue(static_cast<long long>(r.willing_to_pay));
+        item["contact"] = JsonValue(r.contact);
+        item["notes"] = JsonValue(r.notes);
+        item["created_at"] = JsonValue(r.created_at);
+        item["updated_at"] = JsonValue(r.updated_at);
         dataArray.push_back(JsonValue(item));
     }
     resp["data"] = JsonValue(dataArray);
-    
+    resp["total"] = JsonValue(result.total);
+    resp["page"] = JsonValue(static_cast<long long>(result.page));
+    resp["limit"] = JsonValue(static_cast<long long>(result.limit));
+
     return JsonValue(resp);
 }

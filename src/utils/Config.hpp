@@ -37,7 +37,7 @@ public:
     int getMySQLPort() const { return getInt("mysql", "port", 3306); }
     std::string getMySQLUser() const { return getString("mysql", "user", "root"); }
     std::string getMySQLPassword() const { return getString("mysql", "password", ""); }
-    std::string getMySQLDatabase() const { return getString("mysql", "database", "device_data"); }
+    std::string getMySQLDatabase() const { return getString("mysql", "database", "requirement_db"); }
     int getPoolMinSize() const { return getInt("mysql", "pool_size_min", 5); }
     int getPoolMaxSize() const { return getInt("mysql", "pool_size_max", 20); }
     int getConnectTimeout() const { return getInt("mysql", "connect_timeout", 5); }

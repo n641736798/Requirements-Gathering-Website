@@ -8,19 +8,19 @@ export default function Layout() {
     <div className="layout">
       <header className="header">
         <div className="header-content">
-          <h1 className="logo">设备数据监控系统</h1>
+          <h1 className="logo">需求收集网站</h1>
           <nav className="nav">
             <Link
               to="/report"
               className={location.pathname === '/report' ? 'nav-link active' : 'nav-link'}
             >
-              数据上报
+              需求上报
             </Link>
             <Link
               to="/query"
               className={location.pathname === '/query' ? 'nav-link active' : 'nav-link'}
             >
-              数据查询
+              需求查询
             </Link>
           </nav>
         </div>
@@ -31,7 +31,7 @@ export default function Layout() {
       </main>
 
       <footer className="footer">
-        <p>&copy; 2026 设备数据监控系统 - 高并发设备数据接入与查询服务</p>
+        <p>&copy; 2026 需求收集网站</p>
       </footer>
     </div>
   );

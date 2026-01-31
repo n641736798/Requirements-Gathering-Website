@@ -1,0 +1,253 @@
+.requirement-query {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.requirement-query h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+.requirement-query .query-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.requirement-query .form-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.requirement-query .form-group {
+  flex: 1;
+  min-width: 150px;
+}
+
+.requirement-query .form-group-btn {
+  flex: 0 0 auto;
+}
+
+.requirement-query .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #555;
+  font-weight: 500;
+}
+
+.requirement-query .form-group input[type="text"],
+.requirement-query .form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.requirement-query .form-group input:focus,
+.requirement-query .form-group select:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.requirement-query .btn-query {
+  padding: 0.75rem 2rem;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s;
+  white-space: nowrap;
+}
+
+.requirement-query .btn-query:hover:not(:disabled) {
+  background: #357abd;
+}
+
+.requirement-query .btn-query:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.requirement-query .error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #f5c6cb;
+}
+
+.requirement-query .query-results {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.requirement-query .results-header {
+  margin-bottom: 1.5rem;
+}
+
+.requirement-query .results-header h3 {
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.requirement-query .loading,
+.requirement-query .no-data {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+  font-size: 1.1rem;
+}
+
+.requirement-query .requirement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.requirement-query .requirement-item {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.requirement-query .requirement-item:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.requirement-query .requirement-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  background: #fafafa;
+  user-select: none;
+}
+
+.requirement-query .requirement-header:hover {
+  background: #f5f5f5;
+}
+
+.requirement-query .requirement-title {
+  flex: 1;
+  font-weight: 600;
+  color: #333;
+  font-size: 1.05rem;
+}
+
+.requirement-query .requirement-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.requirement-query .willing-badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.requirement-query .willing-badge-1 {
+  background: #d4edda;
+  color: #155724;
+}
+
+.requirement-query .willing-badge-0 {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.requirement-query .willing-badge-null,
+.requirement-query .willing-badge--1 {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.requirement-query .created-at {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.requirement-query .expand-icon {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.requirement-query .requirement-summary {
+  padding: 0.75rem 1.25rem;
+  color: #666;
+  font-size: 0.95rem;
+  border-top: 1px solid #eee;
+}
+
+.requirement-query .requirement-detail {
+  padding: 1rem 1.25rem;
+  background: #f9f9f9;
+  border-top: 1px solid #eee;
+}
+
+.requirement-query .detail-section {
+  margin-bottom: 1rem;
+}
+
+.requirement-query .detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.requirement-query .detail-section strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #555;
+}
+
+.requirement-query .detail-section pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+}
+
+.requirement-query .pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+.requirement-query .pagination button {
+  padding: 0.5rem 1rem;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.requirement-query .pagination button:hover:not(:disabled) {
+  background: #357abd;
+}
+
+.requirement-query .pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

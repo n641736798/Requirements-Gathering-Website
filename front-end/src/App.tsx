@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
-import DeviceReport from './components/DeviceReport';
-import DeviceQuery from './components/DeviceQuery';
+import RequirementReport from './components/RequirementReport';
+import RequirementQuery from './components/RequirementQuery';
 import './App.css';
 
 function App() {
@@ -10,8 +10,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/report" replace />} />
-          <Route path="report" element={<DeviceReport />} />
-          <Route path="query" element={<DeviceQuery />} />
+          <Route path="report" element={<RequirementReport />} />
+          <Route path="query" element={<RequirementQuery />} />
         </Route>
       </Routes>
     </BrowserRouter>

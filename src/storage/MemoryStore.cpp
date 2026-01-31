@@ -1,30 +1,79 @@
 #include "MemoryStore.hpp"
-#include <mutex>
+#include <algorithm>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
-void MemoryStore::append(const std::string& deviceId, const DataPoint& point) {
-    std::unique_lock<std::shared_mutex> lock(mtx_);
-    auto& series = data_[deviceId];
-    series.push_back(point);
+static std::string getCurrentDateTime() {
+    auto now = std::chrono::system_clock::now();
+    auto time = std::chrono::system_clock::to_time_t(now);
+    std::tm tm_buf;
+#ifdef _WIN32
+    localtime_s(&tm_buf, &time);
+#else
+    localtime_r(&time, &tm_buf);
+#endif
+    std::ostringstream oss;
+    oss << std::put_time(&tm_buf, "%Y-%m-%d %H:%M:%S");
+    return oss.str();
 }
 
-std::vector<DataPoint> MemoryStore::queryLatest(const std::string& deviceId, std::size_t limit) const {
+static bool matchesKeyword(const Requirement& req, const std::string& keyword) {
+    if (keyword.empty()) return true;
+    std::string kw = keyword;
+    std::string t = req.title;
+    std::string c = req.content;
+    std::transform(kw.begin(), kw.end(), kw.begin(), ::tolower);
+    std::transform(t.begin(), t.end(), t.begin(), ::tolower);
+    std::transform(c.begin(), c.end(), c.begin(), ::tolower);
+    return t.find(kw) != std::string::npos || c.find(kw) != std::string::npos;
+}
+
+static bool matchesWillingToPay(const Requirement& req, int filter) {
+    if (filter < 0) return true;
+    if (filter == 2) return req.willing_to_pay < 0;  // 2=空/未填
+    return req.willing_to_pay == filter;
+}
+
+void MemoryStore::appendRequirement(const Requirement& req) {
+    std::unique_lock<std::shared_mutex> lock(mtx_);
+    Requirement r = req;
+    r.id = static_cast<int64_t>(data_.size()) + 1;
+    r.created_at = getCurrentDateTime();
+    r.updated_at = r.created_at;
+    data_.push_back(r);
+}
+
+RequirementQueryResult MemoryStore::queryRequirements(int page, int limit,
+    int willingToPay, const std::string& keyword) const {
     std::shared_lock<std::shared_mutex> lock(mtx_);
-    std::vector<DataPoint> result;
-    auto it = data_.find(deviceId);
-    if (it == data_.end()) {
-        return result;
+
+    std::vector<Requirement> filtered;
+    for (const auto& r : data_) {
+        if (matchesWillingToPay(r, willingToPay) && matchesKeyword(r, keyword)) {
+            filtered.push_back(r);
+        }
     }
-    const auto& series = it->second;
-    if (series.empty()) {
+
+    std::sort(filtered.begin(), filtered.end(),
+        [](const Requirement& a, const Requirement& b) { return a.id > b.id; });
+
+    RequirementQueryResult result;
+    result.total = static_cast<int64_t>(filtered.size());
+    result.page = page;
+    result.limit = limit;
+
+    int offset = (page - 1) * limit;
+    if (offset < 0) offset = 0;
+    if (static_cast<size_t>(offset) >= filtered.size()) {
         return result;
     }
 
-    std::size_t n = series.size();
-    std::size_t start = (n > limit) ? (n - limit) : 0;
-    result.reserve(n - start);
-    for (std::size_t i = start; i < n; ++i) {
-        result.push_back(series[i]);
+    int end = offset + limit;
+    if (end > static_cast<int>(filtered.size())) end = static_cast<int>(filtered.size());
+
+    for (int i = offset; i < end; ++i) {
+        result.data.push_back(filtered[i]);
     }
     return result;
 }
-
