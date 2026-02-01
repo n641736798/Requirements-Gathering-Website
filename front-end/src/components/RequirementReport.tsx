@@ -16,6 +16,17 @@ export default function RequirementReport() {
     setLoading(true);
     setMessage(null);
 
+    // 安全超时：20 秒后强制重置，防止请求挂起导致一直显示"提交中"
+    const safetyTimer = setTimeout(() => {
+      setLoading((prev) => {
+        if (prev) {
+          setMessage({ type: 'error', text: '请求超时，请检查后端服务与 Nginx 配置' });
+          return false;
+        }
+        return prev;
+      });
+    }, 20000);
+
     try {
       if (!title.trim()) {
         throw new Error('题目不能为空');
@@ -34,23 +45,30 @@ export default function RequirementReport() {
 
       const response = await reportRequirement(reportData);
 
-      if (response.code === 0) {
+      if (response?.code === 0) {
         setMessage({ type: 'success', text: '需求上报成功！' });
         setTitle('');
         setContent('');
         setWillingToPay(null);
         setContact('');
-        setNotes('');
+        setNotes('');;
       } else {
-        throw new Error(response.message || '上报失败');
+        throw new Error(response?.message || '上报失败');
       }
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } }; message?: string };
-      setMessage({
-        type: 'error',
-        text: err.response?.data?.message || err.message || '上报失败，请检查网络连接',
-      });
+      const err = error as { response?: { status?: number; data?: { message?: string } }; message?: string; code?: string };
+      let text = err?.response?.data?.message || err?.message || '上报失败，请检查网络连接';
+      const msg = String(err?.message || '');
+      if (err?.response?.status === 504) {
+        text = '504 网关超时：请检查 Nginx proxy_read_timeout 及后端服务';
+      } else if (err?.code === 'ECONNABORTED' || msg.includes('timeout')) {
+        text = '请求超时，请确认后端服务已启动（端口 8080）';
+      } else if (msg.includes('Network Error') || err?.code === 'ERR_NETWORK') {
+        text = '无法连接服务器，请确认后端服务已启动（端口 8080）';
+      }
+      setMessage({ type: 'error', text });
     } finally {
+      clearTimeout(safetyTimer);
       setLoading(false);
     }
   };
