@@ -51,7 +51,7 @@ export default function RequirementReport() {
         setContent('');
         setWillingToPay(null);
         setContact('');
-        setNotes('');;
+        setNotes('');
       } else {
         throw new Error(response?.message || '上报失败');
       }

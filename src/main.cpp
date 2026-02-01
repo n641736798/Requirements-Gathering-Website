@@ -174,7 +174,9 @@ int main(int argc, char* argv[]) {
             return;
         }
 
-        if (req.method == "POST" && req.path == "/api/v1/requirement/report") {
+        if (req.method == "GET" && req.path == "/api/v1/health") {
+            response = HttpParser::buildResponse(200, "{\"code\":0,\"message\":\"ok\"}");
+        } else if (req.method == "POST" && req.path == "/api/v1/requirement/report") {
             JsonValue json = JsonParser::parse(req.body);
             RequirementReportRequest reportReq;
             if (!ReportHandler::parseRequirementReportRequest(json, reportReq)) {

@@ -82,7 +82,7 @@ RequirementQueryResult MySQLStore::queryRequirements(int page, int limit,
     if (!keyword.empty()) {
         if (hasWhere) whereClause << " AND ";
         std::string escapedKeyword = guard->escapeString(keyword);
-        whereClause << "(title LIKE '%" << escapedKeyword << "%' OR content LIKE '%" << escapedKeyword << "%')";
+        whereClause << "(title LIKE '%" << escapedKeyword << "%' OR content LIKE '%" << escapedKeyword << "%'";
         hasWhere = true;
     }
     std::string whereStr = hasWhere ? ("WHERE " + whereClause.str()) : "";
@@ -123,4 +123,30 @@ RequirementQueryResult MySQLStore::queryRequirements(int page, int limit,
     }
     mysql_free_result(res);
     return result;
+}
+
+bool MySQLStore::deviceExists(const std::string& deviceId) const {
+    if (!initialized_) { LOG_ERROR("MySQLStore not initialized"); return false; }
+    ConnectionGuard guard(ConnectionPool::getInstance().getConnection());
+    if (!guard) return false;
+
+    std::string escapedId = guard->escapeString(deviceId);
+    std::ostringstream sql;
+    sql << "SELECT 1 FROM device_data.devices WHERE device_id = '" << escapedId << "' LIMIT 1";
+    MYSQL_RES* res = guard->query(sql.str());
+    if (!res) return false;
+    bool exists = (mysql_num_rows(res) > 0);
+    mysql_free_result(res);
+    return exists;
+}
+
+void MySQLStore::ensureDeviceRegistered(const std::string& deviceId) {
+    if (!initialized_) { LOG_ERROR("MySQLStore not initialized"); return; }
+    ConnectionGuard guard(ConnectionPool::getInstance().getConnection());
+    if (!guard) { LOG_ERROR("Failed to get connection"); return; }
+
+    std::string escapedId = guard->escapeString(deviceId);
+    std::ostringstream sql;
+    sql << "INSERT IGNORE INTO device_data.devices (device_id) VALUES ('" << escapedId << "')";
+    if (!guard->execute(sql.str())) LOG_ERROR("Failed to ensure device registered");
 }
