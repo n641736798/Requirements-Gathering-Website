@@ -1,0 +1,2 @@
+# Shell 脚本强制 LF 换行，避免 Linux 上 $'\r': command not found
+*.sh text eol=lf
