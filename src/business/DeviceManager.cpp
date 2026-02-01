@@ -25,7 +25,6 @@ bool DeviceManager::exists(const std::string& deviceId) {
             }
             return mysqlStore_->deviceExists(deviceId);
         }
-        
         case DeviceManagerMode::HYBRID: {
             // 先检查内存缓存
             {

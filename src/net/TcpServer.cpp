@@ -132,7 +132,7 @@ void TcpServer::handleEvent(int fd, uint32_t events) {
         return;
     }
     
-    std::lock_guard<std::mutex> lock(connectionsMtx_);
+    std::unique_lock<std::mutex> lock(connectionsMtx_);
     auto it = connections_.find(fd);
     if (it == connections_.end()) return;
     auto& conn = it->second;
@@ -156,12 +156,17 @@ void TcpServer::handleEvent(int fd, uint32_t events) {
                     processRequest(clientFd, request);
                 });
             } else {
-                // 没有线程池，直接在当前线程处理（保持向后兼容）
+                // 无线程池时：必须先释放锁再调用 processRequest，否则 processRequest 内再次加锁会死锁
+                lock.unlock();
                 processRequest(fd, request);
+                lock.lock();
+                // 锁释放期间 it 可能失效，需重新查找
+                it = connections_.find(fd);
+                if (it == connections_.end()) return;
             }
         }
         
-        if (conn->isClosed()) {
+        if (it->second->isClosed()) {
             connections_.erase(it);
             return;
         }
@@ -199,7 +204,10 @@ void TcpServer::processRequest(int fd, const std::string& request) {
     // 将响应追加到连接的写缓冲区
     conn->appendResponse(response);
     
-    // 触发EPOLLOUT事件以发送响应（在ET模式下需要手动触发）
+    // ET 模式下，socket 已可写时 epoll 不会触发 EPOLLOUT，需立即尝试发送
+    conn->onWritable();
+    
+    // 若 writeBuffer 仍有数据，触发 EPOLLOUT 以便后续发送
     triggerWrite(fd);
 }
 
